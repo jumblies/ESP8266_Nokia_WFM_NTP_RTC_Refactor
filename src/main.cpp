@@ -52,8 +52,7 @@ void setup()
   if (!rtc.begin())
   {
     Serial.println("Couldn't find RTC");
-    // Serial.flush();
-    // abort();
+    Serial.flush();
   }
 
   // if (rtc.lostPower())
