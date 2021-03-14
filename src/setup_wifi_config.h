@@ -1,5 +1,6 @@
 void setup_wifi()
 {
+
     u8g2.firstPage();
     do
     {
@@ -15,10 +16,16 @@ void setup_wifi()
     delay(50);
 
     WiFiManager wifiManager;
-    wifiManager.setTimeout(15);
-    wifiManager.startConfigPortal("NokiaClockAP");
+    wifiManager.setTimeout(10);
+    // wifiManager.startConfigPortal("NokiaClockAP");
+    wifiManager.autoConnect("NokiaClockAP");
     if (WiFi.status() == WL_CONNECTED)
     {
         Serial.printf("Wifi Connected; IP = %s\n", WiFi.localIP().toString().c_str());
     }
-}
+    timeClient.begin();
+    timeClient.update();
+    RtcDateTime utc;
+    utc.InitWithEpoch64Time(timeClient.getEpochTime());
+    Rtc.SetDateTime(utc);
+};

@@ -7,8 +7,10 @@ REFACTOR 2021-03
 */
 #include <Arduino.h>
 
-// Date and time functions using a DS3231 RTC connected via I2C and Wire lib
-#include "RTClib.h"
+#include <Wire.h> // must be included here so that Arduino library object file references work
+#include <RtcDS3231.h>
+RtcDS3231<TwoWire> Rtc(Wire);
+
 #include "WiFiManager.h" //https://github.com/tzapu/WiFiManager
 #include <ESP8266WebServer.h>
 #include <WiFiClient.h>
@@ -19,8 +21,6 @@ REFACTOR 2021-03
 #include <Time.h>
 #include <ESP8266Ping.h>
 
-RTC_DS3231 rtc; //Adafruits fork of Jeelabs RTC.
-
 //Timezone Library
 #include <Timezone.h>
 TimeChangeRule myDST = {"EDT", Second, Sun, Mar, 2, -240}; //Daylight time = UTC - 4 hours
@@ -29,13 +29,18 @@ Timezone myTZ(myDST, mySTD);
 TimeChangeRule *tcr; //pointer to the time change rule, use to get TZ abbrev
 time_t utc, local;
 
+//NTPClient
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "pool.ntp.org" /*, 3600, 60000*/);
+
 // u8g2 Constructor
 #include <U8g2lib.h>
 U8G2_PCD8544_84X48_1_4W_SW_SPI u8g2(U8G2_R0,
-                                    /* clock=*/D3, /* data=*/D7, /* cs=*/D8, /* dc=*/D6, /* reset=*/D0);
+                                    /* clock=*/0, /* data=*/13, /* cs=*/15, /* dc=*/12, /* reset=*/16);
 
 #include "clock_draw.h"
 #include "setup_wifi_config.h"
+#include "i2c_clear_bus.h"
 
 unsigned long previousMillis;
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
@@ -48,21 +53,11 @@ void setup()
   {
     delay(100); // wait for serial port to connect. Needed for Native USB only
   }
-
-  if (!rtc.begin())
-  {
-    Serial.println("Couldn't find RTC");
-    Serial.flush();
-  }
-
-  // if (rtc.lostPower())
-  // {
-  // Serial.println("RTC lost power, let's set the time!");
-  // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-  // }
-
+  I2C_CheckBus();
   u8g2.begin();
   pinMode(10, INPUT);
+  Rtc.Begin();
+
   if (digitalRead(10) == LOW)
   {
     setup_wifi();
@@ -74,21 +69,33 @@ void setup()
     delay(1);
     Serial.println("Wifi Off\n");
   }
+
+
+  
 }
 
 void loop()
 {
-  DateTime now = rtc.now();
+  RtcDateTime now = Rtc.GetDateTime();
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillis >= 1000)
   { //update the display only if time has changed
     previousMillis = currentMillis;
+    RtcTemperature temp = Rtc.GetTemperature();
+    Serial.print("Temperature: ");
+    Serial.println(temp.AsFloatDegF());
+    // Serial.print("Local Time: ");
+    // Serial.println(myTZ.toLocal(timeClient.getEpochTime()));
+    Serial.print("NTP Epoch: ");
+    Serial.println(timeClient.getEpochTime());
 
-    float fahrenheit = ((rtc.getTemperature() * 9 / 5) + 32); //Convert Temp to Fahrenheit
-    // Serial.print("Temperature: ");
-    // Serial.print(fahrenheit);
+    Serial.print("RTC Epoch: ");
+    char buffer[100];
+    sprintf(buffer, "%llu", now.Epoch64Time());
+    Serial.println(buffer);
+
     // Serial.printf("\t %02d %02d %04d\n", now.month(), now.day(), now.year());
     // Serial.println();
-    digitalClockDisplay(now, fahrenheit);
+    digitalClockDisplay(now, temp.AsFloatDegF());
   }
 }
