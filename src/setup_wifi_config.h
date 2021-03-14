@@ -28,4 +28,5 @@ void setup_wifi()
     RtcDateTime utc;
     utc.InitWithEpoch64Time(timeClient.getEpochTime());
     Rtc.SetDateTime(utc);
+    Serial.println("*******RTC set from NTP*******");
 };

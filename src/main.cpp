@@ -69,14 +69,15 @@ void setup()
     delay(1);
     Serial.println("Wifi Off\n");
   }
-
-
-  
 }
 
 void loop()
 {
+  // Deprecating to use UTC
   RtcDateTime now = Rtc.GetDateTime();
+  time_t utc = now.Epoch64Time();
+  time_t local = myTZ.toLocal(utc); //convert to local time
+
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillis >= 1000)
   { //update the display only if time has changed
@@ -96,6 +97,6 @@ void loop()
 
     // Serial.printf("\t %02d %02d %04d\n", now.month(), now.day(), now.year());
     // Serial.println();
-    digitalClockDisplay(now, temp.AsFloatDegF());
+    digitalClockDisplay(local, temp.AsFloatDegF());
   }
 }
