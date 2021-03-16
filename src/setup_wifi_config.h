@@ -16,17 +16,24 @@ void setup_wifi()
     delay(50);
 
     WiFiManager wifiManager;
+    
+    
+    // wifiManager.resetSettings();
+
+
     wifiManager.setTimeout(10);
     // wifiManager.startConfigPortal("NokiaClockAP");
     wifiManager.autoConnect("NokiaClockAP");
     if (WiFi.status() == WL_CONNECTED)
     {
         Serial.printf("Wifi Connected; IP = %s\n", WiFi.localIP().toString().c_str());
-    }
     timeClient.begin();
     timeClient.update();
     RtcDateTime utc;
     utc.InitWithEpoch64Time(timeClient.getEpochTime());
     Rtc.SetDateTime(utc);
     Serial.println("*******RTC set from NTP*******");
+    }
+
+
 };
