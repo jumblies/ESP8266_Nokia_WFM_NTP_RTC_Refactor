@@ -79,7 +79,7 @@ void loop()
   time_t local = myTZ.toLocal(utc); //convert to local time
 
   unsigned long currentMillis = millis();
-  if (currentMillis - previousMillis >= 1000)
+  if (currentMillis - previousMillis >= 500)
   { //update the display only if time has changed
     previousMillis = currentMillis;
     RtcTemperature temp = Rtc.GetTemperature();
