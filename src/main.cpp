@@ -69,6 +69,9 @@ void setup()
     delay(1);
     Serial.println("Wifi Off\n");
   }
+  pinMode(10, OUTPUT);
+  analogWrite(10,200);  //256 bit pwm
+  // digitalWrite(2,LOW);
 }
 
 void loop()
@@ -79,7 +82,7 @@ void loop()
   time_t local = myTZ.toLocal(utc); //convert to local time
 
   unsigned long currentMillis = millis();
-  if (currentMillis - previousMillis >= 1000)
+  if (currentMillis - previousMillis >= 500)
   { //update the display only if time has changed
     previousMillis = currentMillis;
     RtcTemperature temp = Rtc.GetTemperature();
