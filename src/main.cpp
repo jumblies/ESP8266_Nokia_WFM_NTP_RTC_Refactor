@@ -71,7 +71,7 @@ void setup()
   }
   pinMode(10, OUTPUT);
   analogWrite(10,200);  //256 bit pwm
-  // digitalWrite(2,LOW);
+
 }
 
 void loop()
